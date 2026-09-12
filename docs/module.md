@@ -2,29 +2,26 @@
 
 ## 目录结构
 
-模块放在 `modules/<模块名>`。框架识别以下一级目录：
+所有模块位于 `modules` 目录，生成器会在该目录生成 `modules.go`：
 
 ```text
-modules/shop/
-├── config.go
-├── db.json
-├── menu.json
-├── contract/
-├── entity/
-├── service/
-├── controller/
-│   ├── admin/
-│   └── app/
-├── middleware/
-├── event/
-├── schedule/
-├── queue/
-├── consumer/
-├── dto/
-└── grpc/
+modules/
+  ├── config.go              # 必需
+  ├── db.json                # 可选
+  ├── menu.json              # 可选
+  ├── controller/            # 必需
+  │   ├── admin/
+  │   └── app/
+  ├── dto/                   # 可选
+  ├── entity/                # 必需
+  ├── middleware/            # 可选
+  ├── schedule/              # 可选
+  └── service/               # 必需
 ```
 
-模块根目录的业务 Go 文件只能是 `config.go`。测试文件不受此限制；其他业务代码应放入对应协议目录。
+`modules/<模块名>` 是单个模块的根目录。除 `config.go` 外，业务 Go 文件必须放入上面的协议目录；测试文件不受此限制。协议目录可以继续划分子目录，例如 `service/upload`。
+
+新增模块后执行 `go run ./cmd/cool generate`，不要手动修改 `modules/modules.go`。
 
 ## 模块配置
 
