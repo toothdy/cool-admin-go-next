@@ -1,0 +1,10 @@
+# 构建与测试产物
+.DS_Store
+
+/.cache/
+/bin/
+/dist/
+/logs/
+/tmp/
+/resource/
+modules/modules.go

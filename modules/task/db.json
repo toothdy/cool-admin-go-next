@@ -1,0 +1,40 @@
+{
+  "task_info": [
+    {
+      "id": 1,
+      "jobId": null,
+      "repeatConf": null,
+      "name": "每秒执行一次",
+      "cron": null,
+      "limit": null,
+      "every": 1000,
+      "remark": null,
+      "status": 0,
+      "startDate": null,
+      "endDate": null,
+      "data": null,
+      "service": "taskDemoService.test(1,2)",
+      "type": 1,
+      "nextRunTime": null,
+      "taskType": 1
+    },
+    {
+      "id": 2,
+      "jobId": null,
+      "repeatConf": null,
+      "name": "cron任务，5秒执行一次",
+      "cron": "0/5 * * * * *",
+      "limit": null,
+      "every": null,
+      "remark": null,
+      "status": 0,
+      "startDate": null,
+      "endDate": null,
+      "data": null,
+      "service": "taskDemoService.test()",
+      "type": 1,
+      "nextRunTime": null,
+      "taskType": 0
+    }
+  ]
+}

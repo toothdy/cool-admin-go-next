@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "name": "腾讯云COS上传",
+  "key": "tencent-cos",
+  "hook": "upload",
+  "singleton": false,
+  "version": "1.0.0",
+  "description": "腾讯云COS文件上传插件",
+  "author": "toothdy",
+  "logo": "assets/logo.png",
+  "readme": "README.md",
+  "runtime": {
+    "abi": "cool.plugin/v1",
+    "module": "plugin.wasm",
+    "minHostVersion": "2.0.0"
+  },
+  "config": {
+    "accessKeyId": "",
+    "accessKeySecret": "",
+    "bucket": "",
+    "region": "ap-guangzhou",
+    "publicDomain": "",
+    "durationSeconds": 1800,
+    "allowPrefix": "/*"
+  }
+}
