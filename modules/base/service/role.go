@@ -35,6 +35,11 @@ type roleRelationWrite struct {
 	DepartmentID any `orm:"departmentId"`
 }
 
+type roleRelationRow struct {
+	RoleID uint64 `orm:"roleId"`
+	ID     uint64 `orm:"id"`
+}
+
 // 角色分页响应
 type RolePageResult struct {
 	List       []dto.RoleInfoResult `json:"list"`
@@ -300,16 +305,8 @@ func (s *RoleService) List(ctx context.Context) ([]dto.RoleInfoResult, error) {
 	if err = model.OrderAsc("id").Scan(&rows); err != nil {
 		return nil, exception.WrapCore(err, "查询角色列表失败")
 	}
-	result := make([]dto.RoleInfoResult, 0, len(rows))
-	for _, row := range rows {
-		info, infoErr := s.Info(ctx, row.ID)
-		if infoErr != nil {
-			return nil, infoErr
-		}
-		result = append(result, *info)
-	}
 
-	return result, nil
+	return s.roleItems(ctx, rows)
 }
 
 // 当前管理员可见的角色分页
@@ -326,26 +323,47 @@ func (s *RoleService) Page(ctx context.Context, query gnservice.Query) (RolePage
 	if err != nil {
 		return RolePageResult{}, err
 	}
-	var rows []struct {
-		ID uint64 `orm:"id"`
-	}
+	var rows []roleRow
 	pagination, err := s.EntityRenderPage(ctx, model, query, &rows)
 	if err != nil {
 		return RolePageResult{}, err
 	}
-	items := make([]dto.RoleInfoResult, 0, len(rows))
-	for _, row := range rows {
-		info, infoErr := s.Info(ctx, row.ID)
-		if infoErr != nil {
-			return RolePageResult{}, infoErr
-		}
-		items = append(items, *info)
+	items, err := s.roleItems(ctx, rows)
+	if err != nil {
+		return RolePageResult{}, err
 	}
 
 	return RolePageResult{
 		List:       items,
 		Pagination: pagination,
 	}, nil
+}
+
+// 批量补充角色菜单和部门关系
+func (s *RoleService) roleItems(ctx context.Context, rows []roleRow) ([]dto.RoleInfoResult, error) {
+	roleIDs := make([]uint64, len(rows))
+	for index, row := range rows {
+		roleIDs[index] = row.ID
+	}
+	menuIDs, err := relationMap(ctx, s.roleMenu, "menuId", roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	departmentIDs, err := relationMap(ctx, s.roleDepartment, "departmentId", roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]dto.RoleInfoResult, len(rows))
+	for index, row := range rows {
+		result[index] = dto.RoleInfoResult{
+			ID: row.ID, CreateTime: row.CreateTime, UpdateTime: row.UpdateTime,
+			UserID: row.UserID, Name: row.Name, Label: row.Label, Remark: row.Remark,
+			Relevance: row.Relevance, MenuIDList: menuIDs[row.ID],
+			DepartmentIDList: departmentIDs[row.ID],
+		}
+	}
+
+	return result, nil
 }
 
 func (s *RoleService) visibleRoles(
@@ -564,6 +582,36 @@ func roleRelationIDs[E any](
 	}
 
 	return ids, nil
+}
+
+func relationMap[E any](
+	ctx context.Context,
+	base *gnservice.Base[E, uint64],
+	column string,
+	roleIDs []uint64,
+) (map[uint64][]uint64, error) {
+	roleIDs = auth.NormalizeIDs(roleIDs)
+	result := make(map[uint64][]uint64, len(roleIDs))
+	for _, roleID := range roleIDs {
+		result[roleID] = make([]uint64, 0)
+	}
+	if len(roleIDs) == 0 {
+		return result, nil
+	}
+	model, err := base.Model(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var rows []roleRelationRow
+	if err = model.Fields("roleId", column+" AS id").WhereIn("roleId", roleIDs).
+		OrderAsc("roleId").OrderAsc(column).Scan(&rows); err != nil {
+		return nil, exception.WrapCore(err, "查询角色关系失败")
+	}
+	for _, row := range rows {
+		result[row.RoleID] = append(result[row.RoleID], row.ID)
+	}
+
+	return result, nil
 }
 
 func roleRelIDs[E any](

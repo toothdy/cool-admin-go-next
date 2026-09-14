@@ -236,7 +236,7 @@ go run ./cmd/cool check
 # 检查源码并构建到 bin/cool-admin-go-next
 go run ./cmd/cool build
 
-# 执行格式、依赖、静态分析、架构、测试和构建检查
+# 执行格式、依赖、静态分析、架构和构建检查
 make check
 ```
 

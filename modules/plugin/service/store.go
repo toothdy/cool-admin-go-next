@@ -502,6 +502,13 @@ func (store *Store) commitInstall(
 	if err = store.updateInstalledInfo(ctx, targetID, current, artifactID, mutation); err != nil {
 		return committedMutation{}, err
 	}
+	artifactModel, err := store.model(ctx, store.artifactDescriptor.Table())
+	if err != nil {
+		return committedMutation{}, err
+	}
+	if _, err = artifactModel.Where("pluginId", targetID).WhereNot("id", artifactID).Delete(); err != nil {
+		return committedMutation{}, exception.WrapCore(err, "清理插件旧制品失败")
+	}
 	disabledDesired, err := store.disableConflicts(ctx, disabled)
 	if err != nil {
 		return committedMutation{}, err
